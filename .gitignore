@@ -1,0 +1,12 @@
+﻿venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.python-version
+.env
+.env.*
+database.db
+*.sqlite
+*.sqlite3
+*_Firmalari.xlsx

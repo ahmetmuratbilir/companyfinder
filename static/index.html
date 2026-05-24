@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firma Keşif ve Ön Değerlendirme Botu</title>
+  
+  <!-- FontAwesome for Premium Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Chart.js for analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="logo-container">
+      <div class="logo-icon">
+        <i class="fa-solid fa-compass-drafting"></i>
+      </div>
+      <div class="logo-text">Antigravity B2B</div>
+    </div>
+    
+    <nav>
+      <ul class="nav-links">
+        <li class="nav-item active" data-target="page-dashboard">
+          <a href="#"><i class="fa-solid fa-chart-line"></i>Dashboard</a>
+        </li>
+        <li class="nav-item" data-target="page-search">
+          <a href="#"><i class="fa-solid fa-magnifying-glass-location"></i>Arama Merkezi</a>
+        </li>
+        <li class="nav-item" data-target="page-scan">
+          <a href="#"><i class="fa-solid fa-terminal"></i>Canlı Tarama</a>
+        </li>
+        <li class="nav-item" data-target="page-leads">
+          <a href="#"><i class="fa-solid fa-address-book"></i>Firma Havuzu</a>
+        </li>
+        <li class="nav-item" data-target="page-campaign">
+          <a href="#"><i class="fa-solid fa-paper-plane"></i>Mail Kampanyası</a>
+        </li>
+      </ul>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <p>B2B Lead Finder & CRM</p>
+      <p style="opacity: 0.5; margin-top: 4px;">v1.0.0 (Localhost)</p>
+    </div>
+  </aside>
+
+  <!-- Main Content Body -->
+  <main class="main-content">
+
+    <!-- PAGE 1: DASHBOARD -->
+    <div id="page-dashboard" class="page active">
+      <div class="page-header">
+        <h1 class="page-title">Firma Keşif ve Ön Değerlendirme</h1>
+        <p class="page-desc">Sektör bazlı firma bulma, veri zenginleştirme ve başvuruya uygunluk analiz paneli.</p>
+      </div>
+      
+      <!-- Stats Summary cards -->
+      <div class="stats-grid">
+        <div class="glass-card stat-card">
+          <div class="stat-icon primary"><i class="fa-solid fa-building"></i></div>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-total-leads">0</span>
+            <span class="stat-label">Toplam Firma</span>
+          </div>
+        </div>
+        
+        <div class="glass-card stat-card">
+          <div class="stat-icon success"><i class="fa-solid fa-envelope"></i></div>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-has-email">0</span>
+            <span class="stat-label">Geçerli E-posta</span>
+          </div>
+        </div>
+        
+        <div class="glass-card stat-card">
+          <div class="stat-icon warning"><i class="fa-solid fa-star"></i></div>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-high-score">0</span>
+            <span class="stat-label">Güçlü Uyum (Score >= 80)</span>
+          </div>
+        </div>
+        
+        <div class="glass-card stat-card">
+          <div class="stat-icon danger"><i class="fa-solid fa-paper-plane"></i></div>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-mail-sent">0</span>
+            <span class="stat-label">Gönderilen Mail</span>
+          </div>
+        </div>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 32px;">
+        <!-- Analytics Chart -->
+        <div class="glass-card">
+          <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.2rem; margin-bottom: 20px;">Firma Kalite Dağılımı</h2>
+          <div style="height: 300px; display: flex; align-items: center; justify-content: center;">
+            <canvas id="qualityChart"></canvas>
+          </div>
+        </div>
+        
+        <!-- Recents List -->
+        <div class="glass-card">
+          <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.2rem; margin-bottom: 20px;">En Son Keşfedilen Güçlü Adaylar</h2>
+          <div id="recent-strong-leads-list" style="display: flex; flex-direction: column; gap: 12px; max-height: 300px; overflow-y: auto;">
+            <!-- Rendered by JS -->
+            <p style="color: var(--text-muted);">Yükleniyor...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 2: ARAMA MERKEZİ -->
+    <div id="page-search" class="page">
+      <div class="page-header">
+        <h1 class="page-title">Arama Merkezi (Search Configs)</h1>
+        <p class="page-desc">Botun yeni firmaları bulmak amacıyla arama motorlarında kullanacağı sorgu konfigürasyonları.</p>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 32px; align-items: start;">
+        <!-- Existing configs list -->
+        <div class="glass-card">
+          <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.2rem; margin-bottom: 20px;">Kayıtlı Sektör Konfigürasyonları</h2>
+          <div id="configs-list" style="display: flex; flex-direction: column; gap: 16px;">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+        
+        <!-- Add Config form -->
+        <div class="glass-card">
+          <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.2rem; margin-bottom: 20px;" id="config-form-title">Yeni Sektör Kriteri Ekle</h2>
+          <form id="search-config-form">
+            <div class="form-group">
+              <label for="conf-sector-name">Sektör / Klasör Adı</label>
+              <input type="text" id="conf-sector-name" class="form-control" placeholder="Örn: Psikoloji, Endustri_Muhendisligi" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="conf-keywords">Arama Anahtar Kelimeleri (Virgülle veya Satırla Ayırın)</label>
+              <textarea id="conf-keywords" class="form-control" placeholder="Örn: Aile Danışma Merkezi&#10;Klinik Psikoloji Merkezi" required></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label for="conf-cities">Hedef Şehirler (Virgülle veya Satırla Ayırın)</label>
+              <textarea id="conf-cities" class="form-control" placeholder="Örn: SAKARYA SERDIVAN&#10;ISTANBUL KADIKOY" required></textarea>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="form-group">
+                <label for="conf-limit">Sorgu Başı Limit</label>
+                <input type="number" id="conf-limit" class="form-control" value="15" min="1" max="100">
+              </div>
+              <div class="form-group">
+                <label for="conf-delay-range">Gecikme Aralığı (Saniye)</label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="number" id="conf-delay-min" class="form-control" value="15" min="1" style="width: 70px;">
+                  <span>-</span>
+                  <input type="number" id="conf-delay-max" class="form-control" value="30" min="1" style="width: 70px;">
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="conf-blacklist">Kara Liste Alan Adları (Sitelere girerken engellenecekler)</label>
+              <textarea id="conf-blacklist" class="form-control" placeholder="kariyer.net, sahibinden.com, gov.tr, bel.tr" style="min-height: 80px;"></textarea>
+            </div>
+            
+            <div style="display: flex; gap: 12px; margin-top: 10px;">
+              <button type="submit" class="btn btn-primary" style="flex: 1;"><i class="fa-solid fa-floppy-disk"></i>Kaydet</button>
+              <button type="button" id="btn-reset-config-form" class="btn btn-secondary"><i class="fa-solid fa-arrows-rotate"></i>Temizle</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 3: CANLI TARAMA PANELI -->
+    <div id="page-scan" class="page">
+      <div class="page-header">
+        <h1 class="page-title">Canlı Tarama Monitörü (Live Monitor)</h1>
+        <p class="page-desc">Botun arama motorlarında canlı sorgular yapıp şirketleri kazımasını kontrol edin.</p>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 2.5fr; gap: 32px; align-items: start;">
+        <!-- Scraper Control Card -->
+        <div class="glass-card" style="display: flex; flex-direction: column; gap: 20px;">
+          <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.2rem;">Tarama Kontrol Paneli</h2>
+          
+          <div class="form-group">
+            <label for="scan-config-select">Arama Ayarı Seçin</label>
+            <select id="scan-config-select" class="form-control" style="background: rgba(15,23,42,0.8);">
+              <!-- Rendered dynamically -->
+            </select>
+          </div>
+          
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <button id="btn-start-scan" class="btn btn-success" style="width: 100%;"><i class="fa-solid fa-play"></i>Taramayı Başlat</button>
+            <button id="btn-stop-scan" class="btn btn-danger" style="width: 100%;" disabled><i class="fa-solid fa-stop"></i>Taramayı Durdur</button>
+          </div>
+          
+          <div style="border-top: 1px solid var(--card-border); padding-top: 20px; display: flex; flex-direction: column; gap: 16px;">
+            <h3 style="font-size: 0.9rem; font-weight: 600;">Canlı İlerleme Durumu</h3>
+            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted);">
+              <span>İşlem Durumu:</span>
+              <span id="scan-state-label" style="color: white; font-weight: 600;">Boşta (Idle)</span>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted);">
+              <span>Tespit Edilen Aday:</span>
+              <span id="scan-stat-found" style="color: white; font-weight: 600;">0</span>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted);">
+              <span>İşlenen/Zenginleştirilen:</span>
+              <span id="scan-stat-processed" style="color: white; font-weight: 600;">0</span>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; position: relative;">
+              <div id="scan-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%); transition: width 0.3s;"></div>
+            </div>
+            <div style="text-align: right; font-size: 0.8rem; color: var(--text-muted); margin-top: -10px;">
+              <span id="scan-progress-percent">0</span>% Tamamlandı
+            </div>
+          </div>
+        </div>
+        
+        <!-- Live Console Logs Terminal -->
+        <div class="terminal-window" style="margin-top: 0;">
+          <div class="terminal-header">
+            <div class="terminal-title">
+              <i class="fa-solid fa-terminal"></i>
+              <span>Canlı Tarama Terminal Konsolu</span>
+            </div>
+            <div class="terminal-controls">
+              <span class="control-dot red"></span>
+              <span class="control-dot yellow"></span>
+              <span class="control-dot green"></span>
+            </div>
+          </div>
+          <div class="terminal-body" id="scan-console-logs">
+            <div class="log-row"><span class="log-time">[Sistem]</span><span class="log-info">Konsol hazır. Tarama başlatıldığında loglar burada canlı akacaktır.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 4: FIRMA HAVUZU -->
+    <div id="page-leads" class="page">
+      <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h1 class="page-title">Firma Havuzu (CRM leads)</h1>
+          <p class="page-desc">Tüm firmaların durumlarını yönetin, zenginleştirilmiş iletişim kanallarını görün ve detaylı skora bakın.</p>
+        </div>
+        <button id="btn-add-lead-manual" class="btn btn-primary"><i class="fa-solid fa-plus"></i>Manuel Firma Ekle</button>
+      </div>
+      
+      <!-- Filter panel -->
+      <div class="glass-card" style="margin-bottom: 24px; display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 16px; align-items: end;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="lead-filter-search">Firma Adı / E-posta / Site Arama</label>
+          <input type="text" id="lead-filter-search" class="form-control" placeholder="Arama kelimesi yazın...">
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="lead-filter-status">CRM Durumu</label>
+          <select id="lead-filter-status" class="form-control" style="background: rgba(15,23,42,0.8);">
+            <option value="">Hepsi</option>
+            <option value="yeni">Yeni</option>
+            <option value="incelendi">İncelendi</option>
+            <option value="kampanyaya eklendi">Kampanyaya Eklendi</option>
+            <option value="mail gönderildi">Mail Gönderildi</option>
+            <option value="cevap bekleniyor">Cevap Bekleniyor</option>
+            <option value="kara liste">Kara Liste</option>
+          </select>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="lead-filter-sector">Sektör</label>
+          <select id="lead-filter-sector" class="form-control" style="background: rgba(15,23,42,0.8);">
+            <option value="">Hepsi</option>
+            <!-- Rendered dynamically -->
+          </select>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="lead-filter-score-range">Min Kalite Skoru: <span id="filter-score-val" style="color: var(--secondary); font-weight: bold;">0</span></label>
+          <input type="range" id="lead-filter-score-range" class="form-control" min="0" max="100" value="0" style="padding: 0; background: transparent; cursor: pointer;">
+        </div>
+      </div>
+      
+      <!-- Leads Explorer Table -->
+      <div class="glass-card" style="padding: 0;">
+        <div class="table-container">
+          <table class="custom-table" id="leads-table">
+            <thead>
+              <tr>
+                <th style="padding-left: 24px;">Firma Adı</th>
+                <th>Sektör / Şehir</th>
+                <th>E-posta</th>
+                <th>Telefon</th>
+                <th style="text-align: center;">Skor</th>
+                <th>CRM Durum</th>
+                <th style="padding-right: 24px; text-align: right;">İşlemler</th>
+              </tr>
+            </thead>
+            <tbody id="leads-table-body">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Paging Footer -->
+        <div style="padding: 20px 24px; border-top: 1px solid var(--card-border); display: flex; align-items: center; justify-content: space-between;">
+          <span style="font-size: 0.85rem; color: var(--text-muted);" id="leads-count-label">Gösterilen: 0 / Toplam: 0</span>
+          <div class="pagination" id="leads-pagination">
+            <button class="page-btn" id="leads-prev-btn" disabled><i class="fa-solid fa-chevron-left"></i> Geri</button>
+            <span class="page-info" id="leads-page-info">Sayfa 1</span>
+            <button class="page-btn" id="leads-next-btn" disabled>İleri <i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 5: MAIL KAMPANYASI -->
+    <div id="page-campaign" class="page">
+      <div class="page-header">
+        <h1 class="page-title">E-posta Başvuru Kampanyası</h1>
+        <p class="page-desc">SMTP sunucusu üzerinden değişkenli taslaklarla toplu ve kontrollü iş başvurusu yönetimi.</p>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; margin-bottom: 32px;">
+        <!-- SMTP Settings Card -->
+        <div class="glass-card">
+          <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.2rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-gears" style="color: var(--secondary);"></i>SMTP Gönderici Ayarları
+          </h2>
+          <form id="smtp-settings-form">
+            <div class="form-group">
+              <label for="smtp-email">Gönderici E-posta (Gmail)</label>
+              <input type="email" id="smtp-email" class="form-control" placeholder="örn: psikologsibelduran@gmail.com" required>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px;">
+              <div class="form-group">
+                <label for="smtp-host">SMTP Host</label>
+                <input type="text" id="smtp-host" class="form-control" placeholder="smtp.gmail.com" required>
+              </div>
+              <div class="form-group">
+                <label for="smtp-port">SMTP Port</label>
+                <input type="number" id="smtp-port" class="form-control" placeholder="587" required>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="smtp-password">Şifre / Google Uygulama Şifresi (App Password)</label>
+              <div style="position: relative;">
+                <input type="password" id="smtp-password" class="form-control" placeholder="16 haneli uygulama şifresi" required style="width: 100%; padding-right: 40px;">
+                <button type="button" id="btn-toggle-smtp-pass" style="position: absolute; right: 12px; top: 12px; background: none; border: none; color: var(--text-muted); cursor: pointer;"><i class="fa-solid fa-eye"></i></button>
+              </div>
+              <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;"><i class="fa-solid fa-triangle-exclamation" style="color: var(--warning);"></i> G-mail için 2 Adımlı Doğrulama altından "Uygulama Şifresi" almanız zorunludur.</span>
+            </div>
+            
+            <button type="submit" class="btn btn-secondary" style="width: 100%; margin-top: 8px;"><i class="fa-solid fa-check-double"></i>Gönderici Ayarlarını Kaydet</button>
+          </form>
+        </div>
+        
+        <!-- Campaign Setup Card -->
+        <div class="glass-card">
+          <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.2rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-pen-fancy" style="color: var(--primary);"></i>Yeni Kampanya ve Taslak Oluştur
+          </h2>
+          <form id="campaign-create-form">
+            <div class="form-group">
+              <label for="camp-name">Kampanya Adı</label>
+              <input type="text" id="camp-name" class="form-control" placeholder="Örn: Sakarya Psikoloji Klinikleri Başvurusu" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="camp-subject">E-posta Konusu</label>
+              <input type="text" id="camp-subject" class="form-control" placeholder="Örn: Psikolog / Oyun Terapisti Pozisyon Başvurusu" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="camp-attachment">Özgeçmiş PDF Dosyası (CV) Seçin</label>
+              <input type="text" id="camp-attachment" class="form-control" value="SIBEL_DURAN_CV.pdf" placeholder="Özgeçmiş dosyasının tam adı (örn: SIBEL_DURAN_CV.pdf)" required>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">PDF dosyası, ana proje dizininde bulunmalıdır.</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="form-group">
+                <label for="camp-delay-min">Min Gecikme (Sn)</label>
+                <input type="number" id="camp-delay-min" class="form-control" value="15" min="1">
+              </div>
+              <div class="form-group">
+                <label for="camp-delay-max">Max Gecikme (Sn)</label>
+                <input type="number" id="camp-delay-max" class="form-control" value="30" min="1">
+              </div>
+            </div>
+            
+            <div style="margin-top: 10px; border-top: 1px solid var(--card-border); padding-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <span id="camp-auto-select-label" style="font-size: 0.85rem; font-weight: bold; color: var(--success);">0</span> alıcı kriterlere göre otomatik eklenecek.
+              </div>
+              <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus-circle"></i>Kampanyayı Kur</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <!-- Template HTML Editor layout -->
+      <div class="glass-card" style="margin-bottom: 32px;">
+        <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.2rem; margin-bottom: 20px;">E-posta Taslak Şablonu (HTML)</h2>
+        <div class="campaign-editor-layout">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="camp-template-html">E-posta Taslağı (Metin / HTML kodu yazabilirsiniz)</label>
+            <textarea id="camp-template-html" class="form-control" style="min-height: 250px; font-family: monospace; font-size: 0.9rem;" required></textarea>
+          </div>
+          
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="background: rgba(15,23,42,0.4); border: 1px solid var(--card-border); border-radius: 8px; padding: 16px;">
+              <h3 style="font-size: 0.85rem; font-weight: bold; margin-bottom: 12px; color: var(--secondary);">Dinamik Değişkenler</h3>
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px;">Metin içine aşağıdaki etiketleri yazarsanız gönderilirken firmanın verisiyle otomatik değiştirilir:</p>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <span class="variable-badge" onclick="insertTemplateVar('{firma_adi}')">{firma_adi}</span>
+                <span class="variable-badge" onclick="insertTemplateVar('{sektor}')">{sektor}</span>
+                <span class="variable-badge" onclick="insertTemplateVar('{il}')">{il}</span>
+                <span class="variable-badge" onclick="insertTemplateVar('{ilce}')">{ilce}</span>
+              </div>
+            </div>
+            
+            <div style="background: rgba(15,23,42,0.4); border: 1px solid var(--card-border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+              <h3 style="font-size: 0.85rem; font-weight: bold; color: var(--success);">Kampanya Taslak Testi</h3>
+              <p style="font-size: 0.75rem; color: var(--text-muted);">Kampanyayı başlatmadan önce taslağın nasıl durduğunu görmek için kendinize bir test maili atın.</p>
+              <div class="form-group" style="margin-bottom: 0; gap: 6px;">
+                <label for="smtp-test-email">Test Alıcı E-postası</label>
+                <input type="email" id="smtp-test-email" class="form-control" placeholder="örn: alici@gmail.com" style="padding: 8px 12px; font-size: 0.85rem;">
+              </div>
+              <button type="button" id="btn-send-test-mail" class="btn btn-secondary" style="padding: 8px 12px; font-size: 0.85rem;"><i class="fa-solid fa-flask"></i>Test Maili Gönder</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Campaigns monitor and outbox queue -->
+      <div class="glass-card">
+        <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.2rem; margin-bottom: 20px;">Aktif Kampanya İzleme & E-posta Çıkış Logları</h2>
+        <div id="active-campaigns-list" style="display: flex; flex-direction: column; gap: 20px;">
+          <!-- Rendered dynamically -->
+          <p style="color: var(--text-muted);">Kampanya bulunmamaktadır.</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ==========================================
+     MODALS
+     ========================================== -->
+
+  <!-- Lead Details Modal -->
+  <div class="modal-overlay" id="lead-detail-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="md-lead-title">Firma Detayları</h2>
+        <button class="close-btn" id="btn-close-lead-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="detail-label">Web Sitesi</span>
+            <span class="detail-val" id="md-lead-website">-</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">E-posta</span>
+            <span class="detail-val" id="md-lead-email">-</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Telefon</span>
+            <span class="detail-val" id="md-lead-phone">-</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Sektör / İl / İlçe</span>
+            <span class="detail-val" id="md-lead-location">-</span>
+          </div>
+        </div>
+        
+        <div class="detail-item">
+          <span class="detail-label">Site Açıklaması / Özet</span>
+          <span class="detail-val" id="md-lead-desc" style="line-height: 1.4;">-</span>
+        </div>
+        
+        <!-- Score & Explainability -->
+        <div class="score-breakdown-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="font-size: 1rem; font-weight: bold; color: white;">Kalite Skoru & Açıklanabilirlik</h3>
+            <div id="md-lead-score-badge" class="score-badge strong">0</div>
+          </div>
+          <div class="score-reason-text" id="md-lead-score-reason">
+            <!-- Score breakdown text -->
+          </div>
+        </div>
+        
+        <!-- Manual CRM updates -->
+        <div style="border-top: 1px solid var(--card-border); padding-top: 20px; display: grid; grid-template-columns: 1fr 2fr; gap: 20px; align-items: start;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="md-lead-status">CRM Durumu Güncelle</label>
+            <select id="md-lead-status" class="form-control" style="background: rgba(15,23,42,0.8);">
+              <option value="yeni">Yeni</option>
+              <option value="incelendi">İncelendi</option>
+              <option value="kampanyaya eklendi">Kampanyaya Eklendi</option>
+              <option value="mail gönderildi">Mail Gönderildi</option>
+              <option value="cevap bekleniyor">Cevap Bekleniyor</option>
+              <option value="kara liste">Kara Liste</option>
+            </select>
+          </div>
+          
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="md-lead-notes">Manuel Not Ekle</label>
+            <div style="display: flex; gap: 10px;">
+              <input type="text" id="md-lead-notes" class="form-control" placeholder="Görüşme notları, özel durum bilgisi..." style="flex: 1;">
+              <button id="btn-save-lead-crm" class="btn btn-primary"><i class="fa-solid fa-save"></i> Güncelle</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manual Add Lead Modal -->
+  <div class="modal-overlay" id="add-lead-modal">
+    <div class="modal-content" style="max-width: 600px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Yeni Müşteri Adayı (Lead) Ekle</h2>
+        <button class="close-btn" id="btn-close-add-modal">&times;</button>
+      </div>
+      <form id="manual-lead-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="add-lead-name">Firma Adı</label>
+            <input type="text" id="add-lead-name" class="form-control" placeholder="Örn: Sakarya Terapi Merkezi" required>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+              <label for="add-lead-sector">Sektör</label>
+              <input type="text" id="add-lead-sector" class="form-control" placeholder="Örn: Psikoloji" required>
+            </div>
+            <div class="form-group">
+              <label for="add-lead-website">Web Sitesi URL</label>
+              <input type="url" id="add-lead-website" class="form-control" placeholder="https://..." required>
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+              <label for="add-lead-city">Şehir</label>
+              <input type="text" id="add-lead-city" class="form-control" placeholder="Örn: Sakarya" required>
+            </div>
+            <div class="form-group">
+              <label for="add-lead-district">İlçe</label>
+              <input type="text" id="add-lead-district" class="form-control" placeholder="Örn: Serdivan" required>
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+              <label for="add-lead-email">E-posta</label>
+              <input type="email" id="add-lead-email" class="form-control" placeholder="info@firma.com">
+            </div>
+            <div class="form-group">
+              <label for="add-lead-phone">Telefon</label>
+              <input type="text" id="add-lead-phone" class="form-control" placeholder="0264...">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="add-lead-desc">Kısa Açıklama</label>
+            <textarea id="add-lead-desc" class="form-control" placeholder="Web sitesinden genel özet veya sunduğu hizmetler..." style="min-height: 80px;"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label for="add-lead-notes">Kullanıcı Notu</label>
+            <input type="text" id="add-lead-notes" class="form-control" placeholder="Manuel ekleme nedeni, ön görüşme durumu...">
+          </div>
+          
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;"><i class="fa-solid fa-save"></i> Firmayı Kaydet & Kalitesini Skorla</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</body>
+</html>
